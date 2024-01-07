@@ -1,0 +1,37 @@
+version: '3.5'
+services:
+  mongo:
+    image: mongo:7.0
+    container_name: "mongotest"
+    restart: always
+    environment:
+      MONGO_INITDB_ROOT_USERNAME: root
+      MONGO_INITDB_ROOT_PASSWORD: example
+    volumes:
+      - './dockervolume/mongodb:/data/db'
+    ports:
+      - 27017:27017
+    command: --quiet
+    healthcheck:
+      test: echo 'db.runCommand("ping").ok' | mongosh localhost:27017/test --quiet
+
+  novisadapp:
+    build: ./nsapp
+    container_name: "nsapp"
+    environment:
+      MONGO_CONNECTION_STRING: 'mongodb://root:example@mongotest'
+    depends_on:
+      mongo:
+        condition: service_healthy
+    stdin_open: true
+    tty: true
+    
+  guiapp:
+    build: ./gui
+    container_name: "guiapp"
+    depends_on:
+      - novisadapp
+    environment:
+      DISPLAY: $DISPLAY
+    network_mode: host
+      

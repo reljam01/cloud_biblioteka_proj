@@ -1,5 +1,10 @@
 #include <gtk/gtk.h>
 #include <string.h>
+#include <netinet/in.h> //structure for storing address information 
+#include <stdio.h> 
+#include <stdlib.h> 
+#include <sys/socket.h> //for socket APIs 
+#include <sys/types.h> 
 
 static GtkWidget *combobox;
 static GtkWidget *entryime;
@@ -14,7 +19,7 @@ static GtkWidget *kalendar;
 
 static int je_broj(gchar *str) {
   for (int i = 0; i < strlen(str); i++) {
-    if (str[i] <= '0' || str[i] >= '9') {
+    if (str[i] < '0' || str[i] > '9') {
       return 0;
     }
   }
@@ -41,6 +46,33 @@ add_user (GtkWidget *widget,
   
   g_print("IME: %s, PREZIME: %s, ADRESA: %s, JMBG: %s, GRAD: %s\n"
   	,entry_text1,entry_text2,entry_text3,entry_text4,combo_text);
+  
+  int sockD = socket(AF_INET, SOCK_STREAM, 0); 
+  
+  struct sockaddr_in servAddr; \
+  servAddr.sin_family = AF_INET; 
+  servAddr.sin_port = htons(9001); // use some unused port number 
+  servAddr.sin_addr.s_addr = INADDR_ANY; 
+  int connectStatus  = connect(sockD, (struct sockaddr*)&servAddr, sizeof(servAddr));\
+  if (connectStatus == -1) { 
+      printf("Error...\n"); 
+  } 
+  
+  else { 
+      char strData[255]; 
+      char sendData[255];
+      strcat(sendData,entry_text1);
+      strcat(sendData,",");
+      strcat(sendData,entry_text2);
+      strcat(sendData,",");
+      strcat(sendData,entry_text3);
+      strcat(sendData,",");
+      strcat(sendData,entry_text4);
+      strcat(sendData,"\0");
+  
+      send(sockD, sendData, sizeof(sendData), 0);
+  } 
+  close(sockD);
 }
 
 static void
@@ -62,16 +94,44 @@ add_book (GtkWidget *widget,
   entry_text4 = gtk_entry_get_text (GTK_ENTRY (entryclanskibroj));
   combo_text = gtk_combo_box_text_get_active_text (combobox);
   gtk_calendar_get_date(kalendar,&year,&month,&day);
-  month++; //month krece od 0???
   
   if (je_broj(entry_text3) && je_broj(entry_text4)) {
-  	g_print("NAZIV: %s, PISAC: %s, ISBN: %s, ID: %s, GRAD: %s, DATUM: %d.%d.%d.\n"
+  	g_print("NAZIV: %s, PISAC: %s, ISBN: %s, ID: %s, GRAD: %s, DATUM: %02d.%02d.%d.\n"
   	,entry_text1,entry_text2,entry_text3,entry_text4,combo_text,day,month,year);
   } else {
   	g_print("ISBN I ID MORAJU BITI BROJEVI\n");
   }
   
+  int sockD = socket(AF_INET, SOCK_STREAM, 0); 
   
+  struct sockaddr_in servAddr; \
+  servAddr.sin_family = AF_INET; 
+  servAddr.sin_port = htons(9001); // use some unused port number 
+  servAddr.sin_addr.s_addr = INADDR_ANY; 
+  int connectStatus  = connect(sockD, (struct sockaddr*)&servAddr, sizeof(servAddr));\
+  if (connectStatus == -1) { 
+      printf("Error...\n"); 
+  } 
+  
+  else { 
+      char naziv[75] = {'\0'}; 
+      char pisac[35] = {'\0'};
+      char isbn[25] = {'\0'};
+      char id[10] = {'\0'};
+      char date[15] = {'\0'};
+      strcat(naziv,entry_text1);
+      strcat(pisac,entry_text2);
+      strcat(isbn,entry_text3);
+      strcat(id,entry_text4);
+      sprintf(date,"%d-%d-%d",year,month,day);
+  
+      send(sockD, naziv, sizeof(naziv), 0);
+      send(sockD, pisac, sizeof(pisac), 0);
+      send(sockD, isbn, sizeof(isbn), 0);
+      send(sockD, id, sizeof(id), 0);
+      send(sockD, date, sizeof(date), 0);
+  } 
+  close(sockD);
 }
 
 static void

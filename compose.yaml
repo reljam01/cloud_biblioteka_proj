@@ -7,12 +7,44 @@ services:
     environment:
       MONGO_INITDB_ROOT_USERNAME: root
       MONGO_INITDB_ROOT_PASSWORD: example
+    ports:
+      - 127.0.0.1:27017:27017
+    #command: mongod --port 27017
     volumes:
       - './dockervolume/mongons:/data/db'
-    #ports:
-      #- 27017:27017
-    command: mongod --port 27017
-    network_mode: host
+    #network_mode: host
+    healthcheck:
+      test: echo 'db.runCommand("ping").ok' | mongosh localhost:27017/test --quiet
+      
+  mongobg:
+    image: mongo:7.0
+    container_name: "mongobg"
+    restart: always
+    environment:
+      MONGO_INITDB_ROOT_USERNAME: root
+      MONGO_INITDB_ROOT_PASSWORD: example
+    ports:
+      - 127.0.0.1:27019:27017
+    #command: mongod --port 27021
+    volumes:
+      - './dockervolume/mongobg:/data/db'
+    #network_mode: host
+    healthcheck:
+      test: echo 'db.runCommand("ping").ok' | mongosh localhost:27017/test --quiet
+      
+  mongoni:
+    image: mongo:7.0
+    container_name: "mongoni"
+    restart: always
+    environment:
+      MONGO_INITDB_ROOT_USERNAME: root
+      MONGO_INITDB_ROOT_PASSWORD: example
+    ports:
+      - 127.0.0.1:27020:27017
+    #command: mongod --port 27020
+    volumes:
+      - './dockervolume/mongoni:/data/db'
+    #network_mode: host
     healthcheck:
       test: echo 'db.runCommand("ping").ok' | mongosh localhost:27017/test --quiet
       
@@ -23,14 +55,14 @@ services:
     environment:
       MONGO_INITDB_ROOT_USERNAME: root
       MONGO_INITDB_ROOT_PASSWORD: example
+    ports:
+      - 127.0.0.1:27018:27017
+    #command: mongod --port 27018
     volumes:
       - './dockervolume/mongocentral:/data/db'
-    #ports:
-      #- 27018:27017
-    command: mongod --port 27018
-    network_mode: host
+    #network_mode: host
     healthcheck:
-      test: echo 'db.runCommand("ping").ok' | mongosh localhost:27018/test --quiet
+      test: echo 'db.runCommand("ping").ok' | mongosh localhost:27017/test --quiet
 
   novisadapp:
     build: ./nsapp
@@ -40,8 +72,42 @@ services:
     depends_on:
       mongons:
         condition: service_healthy
-    ports:
-      - 9001:9001
+    #ports:
+      #- 9001:9001
+    expose:
+      - 9001
+    stdin_open: true
+    tty: true
+    network_mode: host
+    
+  beogradapp:
+    build: ./bgapp
+    container_name: "bgapp"
+    environment:
+      MONGO_CONNECTION_STRING: 'mongodb://root:example@localhost:27019'
+    depends_on:
+      mongobg:
+        condition: service_healthy
+    #ports:
+      #- 9002:9002
+    expose:
+      - 9002
+    stdin_open: true
+    tty: true
+    network_mode: host
+    
+  nisapp:
+    build: ./niapp
+    container_name: "niapp"
+    environment:
+      MONGO_CONNECTION_STRING: 'mongodb://root:example@localhost:27020'
+    depends_on:
+      mongoni:
+        condition: service_healthy
+    #ports:
+      #- 9003:9003
+    expose:
+      - 9003
     stdin_open: true
     tty: true
     network_mode: host
@@ -54,8 +120,10 @@ services:
     depends_on:
       mongocentral:
         condition: service_healthy
-    ports:
-      - 9004:9004
+    #ports:
+      #- 9004:9004
+    expose:
+      - 9004
     stdin_open: true
     tty: true
     network_mode: host
@@ -66,6 +134,8 @@ services:
     depends_on:
       - novisadapp
       - centralapp
+      - beogradapp
+      - nisapp
     environment:
       DISPLAY: $DISPLAY
     network_mode: host

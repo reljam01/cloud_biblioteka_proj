@@ -121,7 +121,7 @@ void run_server(mongoc_collection_t *collection) {
     struct sockaddr_in servAddr; 
   
     servAddr.sin_family = AF_INET; 
-    servAddr.sin_port = htons(9001); 
+    servAddr.sin_port = htons(9002); 
     servAddr.sin_addr.s_addr = INADDR_ANY; 
   
     // bind socket to the specified IP and port 

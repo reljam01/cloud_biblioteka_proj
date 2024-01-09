@@ -17,6 +17,7 @@ int main(void)
     mongoc_server_api_t *api = NULL;
     mongoc_database_t *database = NULL;
     mongoc_collection_t *collection;
+    bson_t *doc = NULL;
     bson_t *command = NULL;
     bson_t reply = BSON_INITIALIZER;
     int rc = 0;
@@ -80,7 +81,6 @@ int main(void)
         goto cleanup;
     }
     bson_destroy(&reply);
-    bson_destroy(command);
 
     printf(
         "Pinged your deployment using the MongoDB C Driver. "
@@ -96,10 +96,12 @@ int main(void)
     
     //HERE STARTING UP BACKEND AS SERVER
     run_server(collection);
- 
+
 cleanup:
+    bson_destroy(command);
     //bson_destroy(query);
     //bson_destroy(noviquery);
+    bson_destroy(doc);
     //mongoc_cursor_destroy(cursor);
     mongoc_collection_destroy(collection);
     mongoc_database_destroy(database);
@@ -121,7 +123,7 @@ void run_server(mongoc_collection_t *collection) {
     struct sockaddr_in servAddr; 
   
     servAddr.sin_family = AF_INET; 
-    servAddr.sin_port = htons(9001); 
+    servAddr.sin_port = htons(9003); 
     servAddr.sin_addr.s_addr = INADDR_ANY; 
   
     // bind socket to the specified IP and port 

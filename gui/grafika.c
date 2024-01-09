@@ -52,7 +52,17 @@ add_user (GtkWidget *widget,
   
   struct sockaddr_in servAddr; \
   servAddr.sin_family = AF_INET; 
-  servAddr.sin_port = htons(9001); // use some unused port number 
+  if (strcmp(combo_text,"Novi Sad")==0) {
+  	servAddr.sin_port = htons(9001);
+  } else if (strcmp(combo_text,"Beograd")==0) {
+  	servAddr.sin_port = htons(9002);
+  } else if (strcmp(combo_text,"Nis")==0) {
+  	servAddr.sin_port = htons(9003);
+  } else {
+  	g_print("CITY NOT PICKED\n");
+  	gtk_label_set_text(GTK_LABEL (labelresult), "Pick a city!");
+  	return;
+  }
   servAddr.sin_addr.s_addr = INADDR_ANY; 
   int connectStatus  = connect(sockD, (struct sockaddr*)&servAddr, sizeof(servAddr));\
   if (connectStatus == -1) { 
@@ -126,7 +136,17 @@ add_book (GtkWidget *widget,
   
   struct sockaddr_in servAddr; \
   servAddr.sin_family = AF_INET; 
-  servAddr.sin_port = htons(9001); // use some unused port number 
+  if (strcmp(combo_text,"Novi Sad")==0) {
+  	servAddr.sin_port = htons(9001);
+  } else if (strcmp(combo_text,"Beograd")==0) {
+  	servAddr.sin_port = htons(9002);
+  } else if (strcmp(combo_text,"Nis")==0) {
+  	servAddr.sin_port = htons(9003);
+  } else {
+  	g_print("CITY NOT PICKED\n");
+  	gtk_label_set_text(GTK_LABEL (labelresult), "Pick a city!");
+  	return;
+  }
   servAddr.sin_addr.s_addr = INADDR_ANY; 
   int connectStatus  = connect(sockD, (struct sockaddr*)&servAddr, sizeof(servAddr));\
   if (connectStatus == -1) { 
@@ -174,13 +194,45 @@ delete_everything (GtkWidget *widget,
   
   struct sockaddr_in servAddr; \
   servAddr.sin_family = AF_INET; 
-  servAddr.sin_port = htons(9001); // use some unused port number 
+  servAddr.sin_port = htons(9001);
   servAddr.sin_addr.s_addr = INADDR_ANY; 
   int connectStatus  = connect(sockD, (struct sockaddr*)&servAddr, sizeof(servAddr));\
   if (connectStatus == -1) { 
       g_print("Error...\n"); 
   } else {
       g_print("Deleting Novi Sad\n");
+      char req[10] = {'\0'};
+      strcpy(req,"DEL");
+      send(sockD, req, sizeof(req), 0);
+  }
+  close(sockD);
+  
+  sockD = socket(AF_INET, SOCK_STREAM, 0); 
+  
+  servAddr.sin_family = AF_INET; 
+  servAddr.sin_port = htons(9002); // use some unused port number 
+  servAddr.sin_addr.s_addr = INADDR_ANY; 
+  connectStatus  = connect(sockD, (struct sockaddr*)&servAddr, sizeof(servAddr));\
+  if (connectStatus == -1) { 
+      g_print("Error...\n"); 
+  } else {
+      g_print("Deleting Beograd\n");
+      char req[10] = {'\0'};
+      strcpy(req,"DEL");
+      send(sockD, req, sizeof(req), 0);
+  }
+  close(sockD);
+  
+  sockD = socket(AF_INET, SOCK_STREAM, 0); 
+  
+  servAddr.sin_family = AF_INET; 
+  servAddr.sin_port = htons(9003); // use some unused port number 
+  servAddr.sin_addr.s_addr = INADDR_ANY; 
+  connectStatus  = connect(sockD, (struct sockaddr*)&servAddr, sizeof(servAddr));\
+  if (connectStatus == -1) { 
+      g_print("Error...\n"); 
+  } else {
+      g_print("Deleting Nis\n");
       char req[10] = {'\0'};
       strcpy(req,"DEL");
       send(sockD, req, sizeof(req), 0);
@@ -206,6 +258,83 @@ delete_everything (GtkWidget *widget,
 }
 
 static void
+return_book (GtkWidget *widget,
+             gpointer   data)
+{
+  g_print ("TODO: return book from user\n");
+  
+  const gchar *entry_text1;
+  const gchar *entry_text2;
+  const gchar *entry_text3;
+  const gchar *entry_text4;
+  const gchar *combo_text;
+  
+  entry_text1 = gtk_entry_get_text (GTK_ENTRY (entrynaziv));
+  entry_text2 = gtk_entry_get_text (GTK_ENTRY (entrypisac));
+  entry_text3 = gtk_entry_get_text (GTK_ENTRY (entryISBN));
+  entry_text4 = gtk_entry_get_text (GTK_ENTRY (entryclanskibroj));
+  combo_text = gtk_combo_box_text_get_active_text (combobox);
+  
+  if (je_broj(entry_text3) && je_broj(entry_text4)) {
+  	g_print("NAZIV: %s, PISAC: %s, ISBN: %s, ID: %s, GRAD: %s.\n"
+  	,entry_text1,entry_text2,entry_text3,entry_text4,combo_text);
+  } else {
+  	g_print("ISBN I ID MORAJU BITI BROJEVI\n");
+  	gtk_label_set_text(GTK_LABEL (labelresult), "ISBN AND ID MUST BE NUMBERS!");
+  }
+  
+  int sockD = socket(AF_INET, SOCK_STREAM, 0); 
+  
+  struct sockaddr_in servAddr; \
+  servAddr.sin_family = AF_INET; 
+  if (strcmp(combo_text,"Novi Sad")==0) {
+  	servAddr.sin_port = htons(9001);
+  } else if (strcmp(combo_text,"Beograd")==0) {
+  	servAddr.sin_port = htons(9002);
+  } else if (strcmp(combo_text,"Nis")==0) {
+  	servAddr.sin_port = htons(9003);
+  } else {
+  	g_print("CITY NOT PICKED\n");
+  	gtk_label_set_text(GTK_LABEL (labelresult), "Pick a city!");
+  	return;
+  }
+  servAddr.sin_addr.s_addr = INADDR_ANY; 
+  int connectStatus  = connect(sockD, (struct sockaddr*)&servAddr, sizeof(servAddr));\
+  if (connectStatus == -1) { 
+      g_print("Error...\n"); 
+  } else { 
+      char req[10] = {'\0'};
+      char response[10] = {'\0'};
+      char naziv[75] = {'\0'}; 
+      char pisac[35] = {'\0'};
+      char isbn[25] = {'\0'};
+      char id[10] = {'\0'};
+      strcpy(req,"RET");
+      strcat(naziv,entry_text1);
+      strcat(pisac,entry_text2);
+      strcat(isbn,entry_text3);
+      strcat(id,entry_text4);
+  
+      send(sockD, req, sizeof(req), 0);
+      send(sockD, naziv, sizeof(naziv), 0);
+      send(sockD, pisac, sizeof(pisac), 0);
+      send(sockD, isbn, sizeof(isbn), 0);
+      send(sockD, id, sizeof(id), 0);
+      
+      recv(sockD, response, sizeof(response), 0);
+      g_print("The response: %s\n",response);
+      if (strcmp(response,"Y")==0) {
+      	    gtk_label_set_text(GTK_LABEL (labelresult), "Returned book!");
+      } else if (strcmp(response,"N")==0){
+      	    gtk_label_set_text(GTK_LABEL (labelresult), "Couldnt find book!");
+      } else {
+      	    gtk_label_set_text(GTK_LABEL (labelresult), "ERROR!");
+      }
+  } 
+  close(sockD);
+}
+
+static void
 apps_off (GtkWidget *widget,
              gpointer   data)
 {
@@ -213,7 +342,7 @@ apps_off (GtkWidget *widget,
   
   struct sockaddr_in servAddr; \
   servAddr.sin_family = AF_INET; 
-  servAddr.sin_port = htons(9001); // use some unused port number 
+  servAddr.sin_port = htons(9001);
   servAddr.sin_addr.s_addr = INADDR_ANY; 
   int connectStatus  = connect(sockD, (struct sockaddr*)&servAddr, sizeof(servAddr));\
   if (connectStatus == -1) { 
@@ -229,7 +358,39 @@ apps_off (GtkWidget *widget,
   sockD = socket(AF_INET, SOCK_STREAM, 0); 
   
   servAddr.sin_family = AF_INET; 
-  servAddr.sin_port = htons(9004); // use some unused port number 
+  servAddr.sin_port = htons(9002);
+  servAddr.sin_addr.s_addr = INADDR_ANY; 
+  connectStatus  = connect(sockD, (struct sockaddr*)&servAddr, sizeof(servAddr));\
+  if (connectStatus == -1) { 
+      g_print("Error...\n"); 
+  } else {
+      g_print("Turning off Beograd\n");
+      char req[10] = {'\0'};
+      strcpy(req,"EXIT");
+      send(sockD, req, sizeof(req), 0);
+  }
+  close(sockD);
+  
+  sockD = socket(AF_INET, SOCK_STREAM, 0); 
+  
+  servAddr.sin_family = AF_INET; 
+  servAddr.sin_port = htons(9003);
+  servAddr.sin_addr.s_addr = INADDR_ANY; 
+  connectStatus  = connect(sockD, (struct sockaddr*)&servAddr, sizeof(servAddr));\
+  if (connectStatus == -1) { 
+      g_print("Error...\n"); 
+  } else {
+      g_print("Turning off Nis\n");
+      char req[10] = {'\0'};
+      strcpy(req,"EXIT");
+      send(sockD, req, sizeof(req), 0);
+  }
+  close(sockD);
+  
+  sockD = socket(AF_INET, SOCK_STREAM, 0); 
+  
+  servAddr.sin_family = AF_INET; 
+  servAddr.sin_port = htons(9004);
   servAddr.sin_addr.s_addr = INADDR_ANY; 
   connectStatus  = connect(sockD, (struct sockaddr*)&servAddr, sizeof(servAddr));\
   if (connectStatus == -1) { 
@@ -263,6 +424,7 @@ activate (GtkApplication* app,
   GtkWidget *button2;
   GtkWidget *buttonquit;
   GtkWidget *buttondelete;
+  GtkWidget *buttonreturn;
 
   window = gtk_application_window_new (app);
   gtk_window_set_title (GTK_WINDOW (window), "Admin Biblioteka");
@@ -337,10 +499,14 @@ activate (GtkApplication* app,
   g_signal_connect (buttondelete, "clicked", G_CALLBACK (delete_everything), NULL);
   gtk_grid_attach(GTK_GRID (grid), buttondelete, 1, 9, 1, 1);
   
+  buttonreturn = gtk_button_new_with_label ("Vrati knjigu");
+  g_signal_connect (buttonreturn, "clicked", G_CALLBACK (return_book), NULL);
+  gtk_grid_attach(GTK_GRID (grid), buttonreturn, 2, 9, 1, 1);
+  
   buttonquit = gtk_button_new_with_label ("Izadji");
   g_signal_connect (buttonquit, "clicked", G_CALLBACK (apps_off), NULL);
   g_signal_connect_swapped (buttonquit, "clicked", G_CALLBACK (gtk_widget_destroy), window);
-  gtk_grid_attach(GTK_GRID (grid), buttonquit, 2, 9, 1, 1);
+  gtk_grid_attach(GTK_GRID (grid), buttonquit, 2, 10, 1, 1);
   
   gtk_widget_show_all (window);
 }

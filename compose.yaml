@@ -1,36 +1,71 @@
 version: '3.5'
 services:
-  mongo:
+  mongons:
     image: mongo:7.0
-    container_name: "mongotest"
+    container_name: "mongons"
     restart: always
     environment:
       MONGO_INITDB_ROOT_USERNAME: root
       MONGO_INITDB_ROOT_PASSWORD: example
     volumes:
-      - './dockervolume/mongodb:/data/db'
-    ports:
-      - 27017:27017
-    command: --quiet
+      - './dockervolume/mongons:/data/db'
+    #ports:
+      #- 27017:27017
+    command: mongod --port 27017
+    network_mode: host
     healthcheck:
       test: echo 'db.runCommand("ping").ok' | mongosh localhost:27017/test --quiet
+      
+  mongocentral:
+    image: mongo:7.0
+    container_name: "mongocentral"
+    restart: always
+    environment:
+      MONGO_INITDB_ROOT_USERNAME: root
+      MONGO_INITDB_ROOT_PASSWORD: example
+    volumes:
+      - './dockervolume/mongocentral:/data/db'
+    #ports:
+      #- 27018:27017
+    command: mongod --port 27018
+    network_mode: host
+    healthcheck:
+      test: echo 'db.runCommand("ping").ok' | mongosh localhost:27018/test --quiet
 
   novisadapp:
     build: ./nsapp
     container_name: "nsapp"
     environment:
-      MONGO_CONNECTION_STRING: 'mongodb://root:example@mongotest'
+      MONGO_CONNECTION_STRING: 'mongodb://root:example@localhost:27017'
     depends_on:
-      mongo:
+      mongons:
         condition: service_healthy
+    ports:
+      - 9001:9001
     stdin_open: true
     tty: true
+    network_mode: host
+    
+  centralapp:
+    build: ./centralapp
+    container_name: "centralapp"
+    environment:
+      MONGO_CONNECTION_STRING: 'mongodb://root:example@localhost:27018'
+    depends_on:
+      mongocentral:
+        condition: service_healthy
+    ports:
+      - 9004:9004
+    stdin_open: true
+    tty: true
+    network_mode: host
     
   guiapp:
     build: ./gui
     container_name: "guiapp"
     depends_on:
       - novisadapp
+      - centralapp
     environment:
       DISPLAY: $DISPLAY
     network_mode: host

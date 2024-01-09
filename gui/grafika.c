@@ -16,6 +16,7 @@ static GtkWidget *entrypisac;
 static GtkWidget *entryISBN;
 static GtkWidget *entryclanskibroj;
 static GtkWidget *kalendar;
+static GtkWidget *labelresult;
 
 static int je_broj(gchar *str) {
   for (int i = 0; i < strlen(str); i++) {
@@ -55,22 +56,41 @@ add_user (GtkWidget *widget,
   servAddr.sin_addr.s_addr = INADDR_ANY; 
   int connectStatus  = connect(sockD, (struct sockaddr*)&servAddr, sizeof(servAddr));\
   if (connectStatus == -1) { 
-      printf("Error...\n"); 
+      g_print("Error...\n"); 
   } 
   
   else { 
-      char strData[255]; 
-      char sendData[255];
-      strcat(sendData,entry_text1);
-      strcat(sendData,",");
-      strcat(sendData,entry_text2);
-      strcat(sendData,",");
-      strcat(sendData,entry_text3);
-      strcat(sendData,",");
-      strcat(sendData,entry_text4);
-      strcat(sendData,"\0");
+      char req[10] = {'\0'};
+      char response[10] = {'\0'};
+      char ime[25] = {'\0'}; 
+      char prezime[25] = {'\0'};
+      char adresa[35] = {'\0'};
+      char jmbg[15] = {'\0'};
+      strcpy(req,"USER");
+      strcat(ime,entry_text1);
+      strcat(prezime,entry_text2);
+      strcat(adresa,entry_text3);
+      strcat(jmbg,entry_text4);
   
-      send(sockD, sendData, sizeof(sendData), 0);
+      send(sockD, req, sizeof(req), 0);
+      send(sockD, ime, sizeof(ime), 0);
+      send(sockD, prezime, sizeof(prezime), 0);
+      send(sockD, adresa, sizeof(adresa), 0);
+      send(sockD, jmbg, sizeof(jmbg), 0);
+      recv(sockD, response, sizeof(response), 0);
+      
+      g_print("Response: %s\n",response);
+      if (response[0] == 'Y') {
+      	    response[0] = ' ';
+      	    char message[20];
+      	    strcpy(message, "New user id:");
+      	    strcat(message,response);
+      	    gtk_label_set_text(GTK_LABEL (labelresult), message);
+      } else if (response[0] == 'N'){
+      	    gtk_label_set_text(GTK_LABEL (labelresult), "User already exists!");
+      } else {
+      	    gtk_label_set_text(GTK_LABEL (labelresult), "ERROR!");
+      }
   } 
   close(sockD);
 }
@@ -110,27 +130,116 @@ add_book (GtkWidget *widget,
   servAddr.sin_addr.s_addr = INADDR_ANY; 
   int connectStatus  = connect(sockD, (struct sockaddr*)&servAddr, sizeof(servAddr));\
   if (connectStatus == -1) { 
-      printf("Error...\n"); 
-  } 
-  
-  else { 
+      g_print("Error...\n"); 
+  } else { 
+      char req[10] = {'\0'};
+      char response[10] = {'\0'};
       char naziv[75] = {'\0'}; 
       char pisac[35] = {'\0'};
       char isbn[25] = {'\0'};
       char id[10] = {'\0'};
       char date[15] = {'\0'};
+      strcpy(req,"BOOK");
       strcat(naziv,entry_text1);
       strcat(pisac,entry_text2);
       strcat(isbn,entry_text3);
       strcat(id,entry_text4);
       sprintf(date,"%d-%d-%d",year,month,day);
   
+      send(sockD, req, sizeof(req), 0);
       send(sockD, naziv, sizeof(naziv), 0);
       send(sockD, pisac, sizeof(pisac), 0);
       send(sockD, isbn, sizeof(isbn), 0);
       send(sockD, id, sizeof(id), 0);
       send(sockD, date, sizeof(date), 0);
+      
+      recv(sockD, response, sizeof(response), 0);
+      g_print("The response: %s\n",response);
+      if (strcmp(response,"Y")==0) {
+      	    gtk_label_set_text(GTK_LABEL (labelresult), "Added book!");
+      } else if (strcmp(response,"N")==0){
+      	    gtk_label_set_text(GTK_LABEL (labelresult), "Too many books!");
+      } else {
+      	    gtk_label_set_text(GTK_LABEL (labelresult), "ERROR!");
+      }
   } 
+  close(sockD);
+}
+
+static void
+delete_everything (GtkWidget *widget,
+             gpointer   data)
+{
+  int sockD = socket(AF_INET, SOCK_STREAM, 0); 
+  
+  struct sockaddr_in servAddr; \
+  servAddr.sin_family = AF_INET; 
+  servAddr.sin_port = htons(9001); // use some unused port number 
+  servAddr.sin_addr.s_addr = INADDR_ANY; 
+  int connectStatus  = connect(sockD, (struct sockaddr*)&servAddr, sizeof(servAddr));\
+  if (connectStatus == -1) { 
+      g_print("Error...\n"); 
+  } else {
+      g_print("Deleting Novi Sad\n");
+      char req[10] = {'\0'};
+      strcpy(req,"DEL");
+      send(sockD, req, sizeof(req), 0);
+  }
+  close(sockD);
+  
+  sockD = socket(AF_INET, SOCK_STREAM, 0); 
+  
+  servAddr.sin_family = AF_INET; 
+  servAddr.sin_port = htons(9004); // use some unused port number 
+  servAddr.sin_addr.s_addr = INADDR_ANY; 
+  connectStatus  = connect(sockD, (struct sockaddr*)&servAddr, sizeof(servAddr));\
+  if (connectStatus == -1) { 
+      g_print("Error...\n"); 
+  } else {
+      g_print("Deleting Central\n");
+      char req[10] = {'\0'};
+      strcpy(req,"DEL");
+      send(sockD, req, sizeof(req), 0);
+  }
+  close(sockD);
+  gtk_label_set_text(GTK_LABEL (labelresult), "Deleted Everything!");
+}
+
+static void
+apps_off (GtkWidget *widget,
+             gpointer   data)
+{
+  int sockD = socket(AF_INET, SOCK_STREAM, 0); 
+  
+  struct sockaddr_in servAddr; \
+  servAddr.sin_family = AF_INET; 
+  servAddr.sin_port = htons(9001); // use some unused port number 
+  servAddr.sin_addr.s_addr = INADDR_ANY; 
+  int connectStatus  = connect(sockD, (struct sockaddr*)&servAddr, sizeof(servAddr));\
+  if (connectStatus == -1) { 
+      g_print("Error...\n"); 
+  } else {
+      g_print("Turning off Novi Sad\n");
+      char req[10] = {'\0'};
+      strcpy(req,"EXIT");
+      send(sockD, req, sizeof(req), 0);
+  }
+  close(sockD);
+  
+  sockD = socket(AF_INET, SOCK_STREAM, 0); 
+  
+  servAddr.sin_family = AF_INET; 
+  servAddr.sin_port = htons(9004); // use some unused port number 
+  servAddr.sin_addr.s_addr = INADDR_ANY; 
+  connectStatus  = connect(sockD, (struct sockaddr*)&servAddr, sizeof(servAddr));\
+  if (connectStatus == -1) { 
+      g_print("Error...\n"); 
+  } else {
+      g_print("Turning off Central\n");
+      char req[10] = {'\0'};
+      strcpy(req,"EXIT");
+      send(sockD, req, sizeof(req), 0);
+  }
   close(sockD);
 }
 
@@ -153,6 +262,7 @@ activate (GtkApplication* app,
   GtkWidget *button1;
   GtkWidget *button2;
   GtkWidget *buttonquit;
+  GtkWidget *buttondelete;
 
   window = gtk_application_window_new (app);
   gtk_window_set_title (GTK_WINDOW (window), "Admin Biblioteka");
@@ -214,15 +324,21 @@ activate (GtkApplication* app,
 
   button1 = gtk_button_new_with_label ("Dodaj korisnika");
   g_signal_connect (button1, "clicked", G_CALLBACK (add_user), NULL);
-  //g_signal_connect_swapped (button1, "clicked", G_CALLBACK (gtk_widget_destroy), window);
   gtk_grid_attach(GTK_GRID (grid), button1, 1, 7, 1, 1);
   
   button2 = gtk_button_new_with_label ("Zaduzi knjigu");
   g_signal_connect (button2, "clicked", G_CALLBACK (add_book), NULL);
-  //g_signal_connect_swapped (button2, "clicked", G_CALLBACK (gtk_widget_destroy), window);
   gtk_grid_attach(GTK_GRID (grid), button2, 2, 7, 1, 1);
   
+  labelresult = gtk_label_new("");
+  gtk_grid_attach(GTK_GRID (grid), labelresult, 1, 8, 2, 1);
+  
+  buttondelete = gtk_button_new_with_label ("OBRISI SVE");
+  g_signal_connect (buttondelete, "clicked", G_CALLBACK (delete_everything), NULL);
+  gtk_grid_attach(GTK_GRID (grid), buttondelete, 1, 9, 1, 1);
+  
   buttonquit = gtk_button_new_with_label ("Izadji");
+  g_signal_connect (buttonquit, "clicked", G_CALLBACK (apps_off), NULL);
   g_signal_connect_swapped (buttonquit, "clicked", G_CALLBACK (gtk_widget_destroy), window);
   gtk_grid_attach(GTK_GRID (grid), buttonquit, 2, 9, 1, 1);
   

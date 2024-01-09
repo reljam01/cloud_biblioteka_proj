@@ -6,6 +6,7 @@
 #include <sys/socket.h> //for socket APIs 
 #include <sys/types.h> 
 #include <time.h>
+#include <string.h>
 
 void run_server(mongoc_collection_t *);
 
@@ -173,10 +174,6 @@ void run_server(mongoc_collection_t *collection) {
     // client program 
     int servSockD = socket(AF_INET, SOCK_STREAM, 0); 
   
-    // string store data to send to client 
-    char serMsg[255] = "Message from the server to the "
-                       "client \'Hello Client\' "; 
-  
     // define server address 
     struct sockaddr_in servAddr; 
   
@@ -196,64 +193,124 @@ void run_server(mongoc_collection_t *collection) {
     // integer to hold client socket. 
     int clientSocket = accept(servSockD, NULL, NULL); 
   
-    printf("HI I GOT THE MESSAGE!\n");
     // send's messages to client socket 
     //send(clientSocket, serMsg, sizeof(serMsg), 0); 
+    char response[10] = {'\0'};
+    char req[10] = {'\0'};
+    recv(clientSocket, req, sizeof(req), 0);
+    if (strcmp(req,"BOOK") == 0)
+    {
+    	char naziv[75] = {'\0'}; 
+    	char pisac[35] = {'\0'};
+    	char isbn[25] = {'\0'};
+    	char id[10] = {'\0'};
+    	char newdate[15] = {'\0'};
+    	recv(clientSocket, naziv, sizeof(naziv), 0);
+	recv(clientSocket, pisac, sizeof(pisac), 0);
+	recv(clientSocket, isbn, sizeof(isbn), 0);
+	recv(clientSocket, id, sizeof(id), 0);
+	recv(clientSocket, newdate, sizeof(newdate), 0);
     
-    char naziv[75] = {'\0'}; 
-    char pisac[35] = {'\0'};
-    char isbn[25] = {'\0'};
-    char id[10] = {'\0'};
-    char newdate[15] = {'\0'};
-    recv(clientSocket, naziv, sizeof(naziv), 0);
-    recv(clientSocket, pisac, sizeof(pisac), 0);
-    recv(clientSocket, isbn, sizeof(isbn), 0);
-    recv(clientSocket, id, sizeof(id), 0);
-    recv(clientSocket, newdate, sizeof(newdate), 0);
-    
-    close(clientSocket);
-    
-    printf("Message: %s %s %s %s %s\n", naziv, pisac, isbn, id, newdate);
-    int day, month, year;
-    sscanf(newdate,"%d-%d-%d",&year,&month,&day);
-    struct tm parsedtime;
-    parsedtime.tm_year = year;
-    parsedtime.tm_mon = month;
-    parsedtime.tm_mday = day;
-    bson_t *newdoc = BCON_NEW("naziv", BCON_UTF8(naziv), "pisac", BCON_UTF8(pisac),
+    	int newsocket = socket(AF_INET, SOCK_STREAM, 0); 
+  
+  	struct sockaddr_in servAddr2; \
+  	servAddr2.sin_family = AF_INET; 
+  	servAddr2.sin_port = htons(9004); // use some unused port number 
+  	servAddr2.sin_addr.s_addr = INADDR_ANY; 
+  	int connectStatus2  = connect(newsocket, (struct sockaddr*)&servAddr2, sizeof(servAddr2));\
+  	if (connectStatus2 == -1) { 
+      		printf("Error connecting!\n"); 
+  	} 
+  	else {
+  		send(newsocket, req, sizeof(req), 0);
+      		send(newsocket, id, sizeof(id), 0);
+      		recv(newsocket, response, sizeof(response), 0);
+  	} 
+  	close(newsocket);
+    	
+    	send(clientSocket, response, sizeof(response), 0);
+	close(clientSocket);
+    	if (strcmp(response,"Y") == 0) {
+		printf("Message: %s %s %s %s %s\n", naziv, pisac, isbn, id, newdate);
+    		int day, month, year;
+    		sscanf(newdate,"%d-%d-%d",&year,&month,&day);
+    		struct tm parsedtime;
+    		parsedtime.tm_year = year;
+    		parsedtime.tm_mon = month;
+    		parsedtime.tm_mday = day;
+    		bson_t *newdoc = BCON_NEW("naziv", BCON_UTF8(naziv), "pisac", BCON_UTF8(pisac),
                    "isbn", BCON_UTF8(isbn), "datum", BCON_DATE_TIME(mktime(&parsedtime)*1000),
                    "clanski_broj", BCON_INT32(atoi(id)));
                  
-    if (!mongoc_collection_insert_one(collection, newdoc, NULL, NULL, &error))
-    {
-        fprintf(stderr, "%s\n", error.message);
-        return;
-    }
-    else
-    {
-        printf("Document inserted!\n");
-    }
+    		if (!mongoc_collection_insert_one(collection, newdoc, NULL, NULL, &error))
+    		{
+        		fprintf(stderr, "%s\n", error.message);
+        		return;
+    		}
+    		else
+    		{
+        		printf("Document inserted!\n");
+        		bson_t *tempquery = bson_new();
+ 	    		mongoc_cursor_t *tempcursor;
+ 	    		tempcursor = mongoc_collection_find_with_opts(collection,tempquery,NULL,NULL);
+ 	    		while(mongoc_cursor_next(tempcursor, &tempquery)) {
+ 	    			char *str = bson_as_canonical_extended_json(tempquery,NULL);
+ 	    			printf("%s\n",str);
+ 	    			bson_free(str);
+ 	    		}
+ 	    		bson_destroy(tempquery);
+ 	    		mongoc_cursor_destroy(tempcursor);
+    		}
+    		bson_destroy(newdoc);
+    	} else {
+    		printf("Couldn't add more books!\n");
+    	}
+    } else if (strcmp(req,"USER") == 0) {
+    	char ime[25] = {'\0'}; 
+    	char prezime[25] = {'\0'};
+    	char adresa[35] = {'\0'};
+    	char jmbg[15] = {'\0'};
+    	recv(clientSocket, ime, sizeof(ime), 0);
+    	recv(clientSocket, prezime, sizeof(prezime), 0);
+    	recv(clientSocket, adresa, sizeof(adresa), 0);
+    	recv(clientSocket, jmbg, sizeof(jmbg), 0);
+    	
+    	int newsocket = socket(AF_INET, SOCK_STREAM, 0); 
+  
+  	struct sockaddr_in servAddr2; \
+  	servAddr2.sin_family = AF_INET; 
+  	servAddr2.sin_port = htons(9004); // use some unused port number 
+  	servAddr2.sin_addr.s_addr = INADDR_ANY; 
+  	int connectStatus2  = connect(newsocket, (struct sockaddr*)&servAddr2, sizeof(servAddr2));\
+  	if (connectStatus2 == -1) { 
+      		printf("Error connecting!\n"); 
+  	} 
+  	else {
+  		send(newsocket, req, sizeof(req), 0);
+      		send(newsocket, ime, sizeof(ime), 0);
+      		send(newsocket, prezime, sizeof(prezime), 0);
+      		send(newsocket, adresa, sizeof(adresa), 0);
+      		send(newsocket, jmbg, sizeof(jmbg), 0);
+      		recv(newsocket, response, sizeof(response), 0);
+  	} 
+  	close(newsocket);
+  	
+  	send(clientSocket, response, sizeof(response), 0);
+  	close(clientSocket);
+    } else if (strcmp(req,"DEL") == 0) {
+    	close(clientSocket);
+    	bson_t *noviquery = bson_new();
+    	if (!mongoc_collection_delete_many(collection,noviquery,NULL,NULL,&error)) {
+    		fprintf(stderr, "%s\n", error.message);
+    	} else {
+        	printf("Deleted everything!\n");
+   	}
     
-    bson_t *query = bson_new();
-    mongoc_cursor_t *cursor;
-
-    cursor = mongoc_collection_find(collection, MONGOC_QUERY_NONE, 0, 0, 0, query, NULL, NULL);
-    printf("query for clanski_broj %d: ",atoi(id));
-    while (mongoc_cursor_next(cursor, &query))
-    {
-        char *str2 = bson_as_canonical_extended_json(query, NULL);
-        printf("%s\n", str2);
-        bson_free(str2);
+    	bson_destroy(noviquery);
+    } else if(strcmp(req,"EXIT") == 0) {
+    	printf("Exiting app...\n");
+    	break;
     }
-    if (mongoc_cursor_error(cursor, &error))
-    {
-        fprintf(stderr, "%s\n", error.message);
-        return;
     }
-    
-    bson_destroy(query);
-    mongoc_cursor_destroy(cursor);     
-    bson_destroy(newdoc);
-  }
     close(servSockD);
 }

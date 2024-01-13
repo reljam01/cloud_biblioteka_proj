@@ -50,5 +50,5 @@ jobs:
           context: ${{ matrix.context }}
           file: ${{ matrix.dockerfile }}
           push: true
-          tags: ${{ matrix.tag }}
+          tags: ${{ matrix.image }}:${{ matrix.tag }}
           labels: ${{ steps.meta.outputs.labels }}

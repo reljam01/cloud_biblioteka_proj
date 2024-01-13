@@ -27,6 +27,10 @@ jobs:
             dockerfile: centralapp/Dockerfile
             context: ./centralapp
             tag: centralapp
+          - image: reljam01/bibliotekaapp
+            dockerfile: gui/Dockerfile
+            context: ./gui
+            tag: guiapp
     steps:
       -
         name: Checkout

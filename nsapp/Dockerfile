@@ -4,7 +4,7 @@ WORKDIR /build
 
 RUN microdnf upgrade -y && microdnf install -y gcc
 
-COPY ns.c /build/
+COPY . /build/
 
 RUN gcc \
     -o ns \
@@ -14,5 +14,7 @@ RUN gcc \
     -L/usr/local/lib64/ \
     -lmongoc-1.0 \
     -lbson-1.0
+
+EXPOSE 9001
 
 CMD /build/ns

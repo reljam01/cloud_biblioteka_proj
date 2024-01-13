@@ -74,8 +74,8 @@ services:
         condition: service_healthy
     #ports:
       #- 9001:9001
-    expose:
-      - 9001
+    #expose:
+      #- 9001
     stdin_open: true
     tty: true
     network_mode: host
@@ -90,8 +90,8 @@ services:
         condition: service_healthy
     #ports:
       #- 9002:9002
-    expose:
-      - 9002
+    #expose:
+      #- 9002
     stdin_open: true
     tty: true
     network_mode: host
@@ -106,8 +106,8 @@ services:
         condition: service_healthy
     #ports:
       #- 9003:9003
-    expose:
-      - 9003
+    #expose:
+      #- 9003
     stdin_open: true
     tty: true
     network_mode: host
@@ -122,8 +122,8 @@ services:
         condition: service_healthy
     #ports:
       #- 9004:9004
-    expose:
-      - 9004
+    #expose:
+      #- 9004
     stdin_open: true
     tty: true
     network_mode: host

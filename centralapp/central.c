@@ -295,6 +295,7 @@ void run_server(mongoc_collection_t *collection) {
         		printf("iter type: %d\n",value->value_type);
         		printf("value (finally): %d\n",value->value.v_int32);
         		num_books = value->value.v_int32;
+        		//bson_value_destroy(value); negde vec free-ujem
         	}
     	}
     	if (mongoc_cursor_error(cursor, &error))

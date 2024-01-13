@@ -14,15 +14,19 @@ jobs:
           - image: reljam01/bibliotekaapp
             dockerfile: nsapp/Dockerfile
             context: ./nsapp
+            tag: nsapp
           - image: reljam01/bibliotekaapp
             dockerfile: niapp/Dockerfile
             context: ./niapp
+            tag: niapp
           - image: reljam01/bibliotekaapp
             dockerfile: bgapp/Dockerfile
             context: ./bgapp
+            tag: bgapp
           - image: reljam01/bibliotekaapp
             dockerfile: centralapp/Dockerfile
             context: ./centralapp
+            tag: centralapp
     steps:
       -
         name: Checkout
@@ -46,5 +50,5 @@ jobs:
           context: ${{ matrix.context }}
           file: ${{ matrix.dockerfile }}
           push: true
-          tags: ${{steps.meta.outputs.tags }}
+          tags: ${{ matrix.tag }}
           labels: ${{ steps.meta.outputs.labels }}

@@ -11,16 +11,16 @@ jobs:
     strategy:
       matrix:
         include:
-          - image: bibliotekaapp:nsapp
+          - image: bibliotekaapp/nsapp
             dockerfile: nsapp/Dockerfile
             context: ./nsapp
-          - image: bibliotekaapp:niapp
+          - image: bibliotekaapp/niapp
             dockerfile: niapp/Dockerfile
             context: ./niapp
-          - image: bibliotekaapp:bgapp
+          - image: bibliotekaapp/bgapp
             dockerfile: bgapp/Dockerfile
             context: ./bgapp
-          - image: bibliotekaapp:centralapp
+          - image: bibliotekaapp/centralapp
             dockerfile: centralapp/Dockerfile
             context: ./centralapp
     steps:

@@ -18,7 +18,7 @@ spec:
         - containerPort: 27017
     -
       name: app-cental
-      image: reljam01/bibliotekaapp:centralapp
+      image: reljam01/bibliotekaapp:centrapp
       env:
         - name: MONGO_CONNECTION_STRING
           value: 'mongodb://root:example@localhost:27017'

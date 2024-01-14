@@ -18,7 +18,7 @@ spec:
         - containerPort: 27017
     -
       name: app-ni
-      image: reljam01/bibliotekaapp:libapp
+      image: reljam01/bibliotekaapp:librapp
       env:
         - name: MONGO_CONNECTION_STRING
           value: 'mongodb://root:example@localhost:27017'

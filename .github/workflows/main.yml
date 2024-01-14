@@ -12,9 +12,9 @@ jobs:
       matrix:
         include:
           - image: reljam01/bibliotekaapp
-            dockerfile: nsapp/Dockerfile
-            context: ./nsapp
-            tag: nsapp
+            dockerfile: libapp/Dockerfile
+            context: ./libapp
+            tag: libapp
           - image: reljam01/bibliotekaapp
             dockerfile: centralapp/Dockerfile
             context: ./centralapp

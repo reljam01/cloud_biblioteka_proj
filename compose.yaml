@@ -65,8 +65,7 @@ services:
       test: echo 'db.runCommand("ping").ok' | mongosh localhost:27017/test --quiet
 
   novisadapp:
-    #build: ./nsapp
-    image: reljam01/bibliotekaapp:nsapp
+    image: reljam01/bibliotekaapp:librapp
     container_name: "nsapp"
     environment:
       MONGO_CONNECTION_STRING: 'mongodb://root:example@localhost:27017'
@@ -83,9 +82,7 @@ services:
     network_mode: host
     
   beogradapp:
-    #build: ./bgapp
-    #build: ./nsapp
-    image: reljam01/bibliotekaapp:nsapp
+    image: reljam01/bibliotekaapp:librapp
     container_name: "bgapp"
     environment:
       MONGO_CONNECTION_STRING: 'mongodb://root:example@localhost:27019'
@@ -102,9 +99,7 @@ services:
     network_mode: host
     
   nisapp:
-    #build: ./niapp
-    #build: ./nsapp
-    image: reljam01/bibliotekaapp:nsapp
+    image: reljam01/bibliotekaapp:librapp
     container_name: "niapp"
     environment:
       MONGO_CONNECTION_STRING: 'mongodb://root:example@localhost:27020'
@@ -121,8 +116,7 @@ services:
     network_mode: host
     
   centralapp:
-    #build: ./centralapp
-    image: reljam01/bibliotekaapp:centralapp
+    image: reljam01/bibliotekaapp:centrapp
     container_name: "centralapp"
     environment:
       MONGO_CONNECTION_STRING: 'mongodb://root:example@localhost:27018'

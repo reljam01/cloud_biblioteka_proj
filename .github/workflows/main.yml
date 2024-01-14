@@ -12,13 +12,13 @@ jobs:
       matrix:
         include:
           - image: reljam01/bibliotekaapp
-            dockerfile: libapp/Dockerfile
-            context: ./libapp
+            dockerfile: librapp/Dockerfile
+            context: ./librapp
             tag: libapp
           - image: reljam01/bibliotekaapp
-            dockerfile: centralapp/Dockerfile
-            context: ./centralapp
-            tag: centralapp
+            dockerfile: centrapp/Dockerfile
+            context: ./centrapp
+            tag: centrapp
           - image: reljam01/bibliotekaapp
             dockerfile: gui/Dockerfile
             context: ./gui

@@ -8,7 +8,7 @@
 #include <time.h>
 #include <string.h>
 
-void run_server(mongoc_collection_t *);
+void run_server(mongoc_collection_t *, int);
 
 int main(void)
 {
@@ -26,6 +26,8 @@ int main(void)
     mongoc_init();
 
     const char *connection_string = getenv("MONGO_CONNECTION_STRING");
+    int env_port = atoi(getenv("APP_PORT"));
+    printf("\nTHE APP PORT IS: %d\n\n",env_port);
     if (!connection_string)
     {
         fprintf(
@@ -95,7 +97,7 @@ int main(void)
     }
     
     //HERE STARTING UP BACKEND AS SERVER
-    run_server(collection);
+    run_server(collection, env_port);
  
 cleanup:
     //bson_destroy(query);
@@ -110,7 +112,7 @@ cleanup:
     return rc;
 }
 
-void run_server(mongoc_collection_t *collection) {
+void run_server(mongoc_collection_t *collection, int env_port) {
 
     bson_error_t error = {0};
     // create server socket similar to what was done in 
@@ -121,7 +123,7 @@ void run_server(mongoc_collection_t *collection) {
     struct sockaddr_in servAddr; 
   
     servAddr.sin_family = AF_INET; 
-    servAddr.sin_port = htons(9001); 
+    servAddr.sin_port = htons(env_port); 
     servAddr.sin_addr.s_addr = INADDR_ANY; 
   
     // bind socket to the specified IP and port 
@@ -158,7 +160,7 @@ void run_server(mongoc_collection_t *collection) {
   
   	struct sockaddr_in servAddr2; \
   	servAddr2.sin_family = AF_INET; 
-  	servAddr2.sin_port = htons(9004); // use some unused port number 
+  	servAddr2.sin_port = htons(9004);
   	servAddr2.sin_addr.s_addr = INADDR_ANY; 
   	int connectStatus2  = connect(newsocket, (struct sockaddr*)&servAddr2, sizeof(servAddr2));\
   	if (connectStatus2 == -1) { 

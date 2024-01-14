@@ -70,6 +70,7 @@ services:
     container_name: "nsapp"
     environment:
       MONGO_CONNECTION_STRING: 'mongodb://root:example@localhost:27017'
+      APP_PORT: 9001
     depends_on:
       mongons:
         condition: service_healthy
@@ -83,10 +84,12 @@ services:
     
   beogradapp:
     #build: ./bgapp
-    image: reljam01/bibliotekaapp:bgapp
+    #build: ./nsapp
+    image: reljam01/bibliotekaapp:nsapp
     container_name: "bgapp"
     environment:
       MONGO_CONNECTION_STRING: 'mongodb://root:example@localhost:27019'
+      APP_PORT: 9002
     depends_on:
       mongobg:
         condition: service_healthy
@@ -100,10 +103,12 @@ services:
     
   nisapp:
     #build: ./niapp
-    image: reljam01/bibliotekaapp:niapp
+    #build: ./nsapp
+    image: reljam01/bibliotekaapp:nsapp
     container_name: "niapp"
     environment:
       MONGO_CONNECTION_STRING: 'mongodb://root:example@localhost:27020'
+      APP_PORT: 9003
     depends_on:
       mongoni:
         condition: service_healthy

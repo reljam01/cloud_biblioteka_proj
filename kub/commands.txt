@@ -1,0 +1,13 @@
+minikube start --driver=docker
+
+kubectl create -f nspod.yml
+...
+
+kubectl exec -it -c app-ns ns-app -- sh
+
+//mogu i logovi da se gledaju preko logs, i get pods da se vidi
+//status podova, describe da se opisu
+
+kubectl delete pod ns-app
+...
+

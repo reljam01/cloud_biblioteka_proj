@@ -1,0 +1,28 @@
+apiVersion: v1
+kind: Pod
+metadata:
+  name: bg-app
+  labels:
+    name: bg-app
+spec:
+  containers:
+    -
+      name: mongo-bg
+      image: mongo:7.0
+      env:
+        - name: MONGO_INITDB_ROOT_USERNAME
+          value: root
+        - name: MONGO_INITDB_ROOT_PASSWORD
+          value: example
+      ports:
+        - containerPort: 27017
+    -
+      name: app-bg
+      image: reljam01/bibliotekaapp:libapp
+      env:
+        - name: MONGO_CONNECTION_STRING
+          value: 'mongodb://root:example@localhost:27017'
+        - name: APP_PORT
+          value: 9002
+      ports:
+        - containerPort: 9002
